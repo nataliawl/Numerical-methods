@@ -1,0 +1,74 @@
+import numpy as np
+from numpy.typing import NDArray
+
+vector = NDArray[np.float64]
+numb = np.float64
+
+def p_alpha(alpha: numb) -> numb:
+    x = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
+    y = np.array([1, 0, 1, alpha, 1, 0, 1], dtype=float)
+
+    coeffi = find_coefficeints(x, y)
+    return horner(coeffi, 7)
+
+def lj_x(x: numb, vector_x : vector, j: int) -> numb:
+    n = len(vector_x)
+    numerator: numb = np.float64(1.0)
+    denominator: numb = np.float64(1.0)
+    our_range = [i for i in range(0, n) if i != j]
+
+    for i in our_range:
+        numerator *= x - vector_x[i]
+        denominator *= vector_x[j] - vector_x[i]
+
+    return numerator / denominator
+
+def find_coefficeints(x: vector, f_x: vector) -> vector:
+    n = len(x)
+    lj = np.zeros(n, dtype= numb)
+    for j in range(n):
+        lj[j] = lj_x(0.0, x, j)
+
+    coeffis = np.zeros(n, dtype= numb)
+    f_j = f_x.copy()
+
+    for k in range(n):
+        coeffis[k] = np.sum(lj * f_j)
+
+        for j in range(n):
+            f_j[j] = (f_j[j] - coeffis[k]) / x[j]
+
+    return coeffis
+
+def horner(coefficients: vector , x: numb) -> numb:
+    result = 0.0
+
+    for i in range(len(coefficients) - 1, 0, -1):
+        result = result * x + i * coefficients[i]
+
+    return result
+
+def polynomial(x: numb, coeffi: vector) -> numb:
+    lenght = len(coeffi)
+    result: numb = 0.0
+    for i in range(lenght - 1, 0, -1):
+        result += coeffi[i] * x ** i
+
+    return result
+
+def function_x(x:vector) -> vector:
+    f_x = np.zeros(len(x), dtype= numb)
+    for i in range(len(x)):
+        f_x[i] = 1/(1 + 5*x[i]*x[i])
+
+    return f_x
+def main():
+  p_0 = p_alpha(0.0)
+  p_1 = p_alpha(1.0)
+
+  alpha_0 = -p_0/(p_1 - p_0)
+
+  print("Miejsce zerowe p(alpha) wynosi: ", alpha_0, "")
+
+if __name__ == '__main__':
+    main()
