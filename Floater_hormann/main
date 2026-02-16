@@ -1,0 +1,63 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from numpy.typing import NDArray
+import math
+
+vector = NDArray[np.float64]
+number = np.float64
+
+def function_x(x:vector) -> vector:
+    f_x = np.zeros(len(x), dtype= number)
+    for i in range(len(x)):
+        f_x[i] = 1/(1 + 5*x[i]*x[i])
+
+    return f_x
+
+def weights_floater_hormann(x_size : int, d: int) -> vector:
+    w = np.zeros(x_size, dtype= number)
+
+    for k in range(x_size):
+        if (k - d)%2 == 0:
+            sign = 1.0
+        else:
+            sign = -1.0
+
+        start = max(0, k - d)
+        end = min(k, x_size - d - 1)
+        sums = 0.0
+        for i in range(start, end + 1):
+            sums += math.comb(d, k - i)
+
+        w[k] = sign * sums
+
+    return w
+
+def function_floater_hormann(x_nodes: vector, other_x: vector, f_x: vector, w: vector) -> vector:
+    r = np.zeros_like(other_x)
+    for i, x in enumerate(other_x):
+        gap = x - x_nodes
+        w_diff = w / gap
+        numerator = np.sum(w_diff * f_x)
+        denominator = np.sum(w_diff)
+        r[i] = numerator / denominator
+
+    return r
+
+def main():
+    x: vector = np.array([-7 / 8, -5 / 8,
+    -3 / 8, -1 / 8, 1 / 8, 3 / 8, 5 / 8, 7 / 8], dtype=np.float64)
+    f_x = function_x(x)
+    d = 3
+    w = weights_floater_hormann(len(x), d)
+    print(w)
+
+    plot_x = np.linspace(-1.25, 1.25, 400)
+    plot_y = function_floater_hormann(x, plot_x, f_x, w)
+
+    plt.plot(plot_x, plot_y, label="Interpolacja Floatera–Hormanna (d=3)", color="purple")
+    plt.plot(x, f_x, 'ro', color="gold", label="Węzły z zadania 8")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+if __name__ == "__main__":
+    main()
