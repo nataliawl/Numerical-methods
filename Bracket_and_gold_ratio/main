@@ -1,0 +1,133 @@
+import numpy as np
+
+numb = np.float64
+
+def f_x(x: numb) -> numb:
+    coefficients = np.array([0.0, -1/16, -0.5, 0.0, 0.25], dtype=numb)
+    value = 0.0
+
+    for i in range(0,len(coefficients)):
+        value += coefficients[i] * (x ** i)
+
+    return value
+
+def bracket_minimum(x:numb) -> tuple[numb, numb, numb]:
+    a = x
+    h = 0.1
+
+    f_a = f_x(a)
+
+    b = a + h
+    f_b = f_x(b)
+
+    if f_b > f_a:
+        h = -h
+        b = a + h
+        f_b = f_x(b)
+        if f_b > f_a:
+            raise RuntimeError("Brak kierunku spadku")
+
+    for _ in range(100):
+        c = b + h
+        f_c = f_x(c)
+
+        if f_c > f_b:
+            return a, b, c
+
+        a, f_a = b, f_b
+        b, f_b = c, f_c
+        h *= 2
+
+    raise RuntimeError("Funkcja monotoniczna")
+
+def gold_ratio_method(x:numb) -> numb:
+    a, b, c = bracket_minimum(x)
+    print(f"a = {a}, b = {b}, c = {c}")
+    w = (3 - np.sqrt(5)) / 2
+    tolerance : float = 1e-6
+    iteration : int = 100
+
+    for i in range(1, iteration):
+
+        if abs(b - a) > abs(c - b):
+            d = a + w * abs(b - a)
+        else:
+            d = b +  w * abs(c - b)
+
+        if abs(c - a) < tolerance * (abs(b) + abs(d)):
+            print(f"Minimum wynosi: = {b}, a znaleziono je w {i} iteracji")
+            break
+
+        f_b, f_d = f_x(b), f_x(d)
+
+        if f_d < f_b:
+            if d < b:
+                c, b = b, d
+            else:
+                a,b = b, d
+        else:
+            if d < b:
+                a = d
+            else:
+                c = d
+
+    return b
+
+def brent_method(x: numb) -> numb:
+    a,b, c =  bracket_minimum(x)
+    tolerance : float = 1e-6
+    iteration : int = 100
+    prev_interval = abs(c - a)
+    prev2_interval = prev_interval
+
+    for i in range(1, iteration):
+        old_b = b
+        f_a, f_b, f_c = f_x(a), f_x(b), f_x(c)
+        acceptable = False
+
+        denominator = a *(f_c - f_b) + b * (f_a - f_c) + c * (f_b - f_a)
+
+        if abs(denominator) > 1e-14:
+            numerator = (a**2) *(f_c - f_b) + (b**2)  * (f_a - f_c) + (c**2)  * (f_b - f_a)
+            d = (1/2) * (numerator/denominator)
+
+            if a < d < c:
+                new_interval = max(abs(d - a), (c - d))
+                if new_interval <= 0.5 * prev2_interval:
+                    acceptable = True
+
+        if not acceptable:
+            d = (c + a) / 2.0
+
+        f_d = f_x(d)
+
+        if f_d < f_b:
+            if d < b:
+                c, b = b, d
+            else:
+                a, b = b, d
+
+        else:
+            if d < b:
+                a = d
+            else:
+                c = d
+
+        prev2_interval = prev_interval
+        prev_interval = abs(c - a)
+
+        if abs(c - a) < tolerance * (abs(old_b) + abs(d)):
+            print(f"Minimum wynosi: = {b}, a znaleziono je w {i} iteracji")
+            break
+
+    return b
+
+def main():
+    brent_minimum = brent_method(0.0)
+    gold_ratio_minimum = gold_ratio_method(0.0)
+
+    brent_minimum = brent_method(-2.0)
+    gold_ratio_minimum = gold_ratio_method(-2.0)
+
+if __name__ == "__main__":
+    main()
