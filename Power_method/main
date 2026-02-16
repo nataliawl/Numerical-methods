@@ -1,0 +1,63 @@
+from typing import Any
+
+import numpy as np
+from numpy.typing import NDArray
+
+vector = NDArray[np.float64]
+matrix = NDArray[np.float64]
+
+def power_method(A: matrix, iterations: int) -> tuple[vector, np.float64]:
+    y = np.random.rand(A.shape[0]) #Tworzymy randomowy wektor
+    y = y/ np.linalg.norm(y) #Normalizujemy go
+
+    for _ in range(iterations):
+        #Obliczamy wektor Ay
+        z = A @ y
+
+        #Obliczamy jego norme
+        norm_of_z = np.linalg.norm(z)
+
+        #Normalizuje wektor
+        y = z / norm_of_z
+
+    #Wyliczam wartosc wlasna
+    value = float(norm_of_z)
+
+    return y, value
+
+def second_value(A: matrix, first: vector, iterations: int) -> tuple[vector, np.float64]: 
+    y = np.random.rand(A.shape[0])
+    y -= first * (first @ y)  # rzutowanie
+    y = y / np.linalg.norm(y)
+
+    for _ in range(iterations):
+        z = A @ y
+        z = z - first*(first @ z)
+        norm_of_z = np.linalg.norm(z)
+        y = z / norm_of_z
+
+    value = float(norm_of_z)
+
+    return y, value
+
+def main():
+    A: vector = np.array([[19 / 12, 13 / 12, 5 / 6, 5 / 6, 13 / 12, -17 / 12],
+                          [13 / 12, 13 / 12, 5 / 6, 5 / 6, -11 / 12, 13 / 12],
+                          [5 / 6, 5 / 6, 5 / 6, -1 / 6, 5 / 6, 5 / 6],
+                          [5 / 6, 5 / 6, -1 / 6, 5 / 6, 5 / 6, 5 / 6],
+                          [13 / 12, -11 / 12, 5 / 6, 5 / 6, 13 / 12, 13 / 12],
+                          [-17 / 12, 13 / 12, 5 / 6, 5 / 6, 13 / 12, 19 / 12]], dtype=np.float64)
+    first_vector, first_value = power_method(A, 1000)
+    second_vector, value_second = second_value(A, first_vector, 1000)
+    print("Wyswietlamy wyniki")
+    print(f"Pierwszy wektor: {first_vector}")
+    print(f"Pierwsza wartosc wlasna: {first_value}")
+    print(f"Drugi wektor: {second_vector}")
+    print(f"Druga wartosc wlasna: {value_second}")
+
+main()
+
+
+
+
+
