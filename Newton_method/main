@@ -1,0 +1,42 @@
+import numpy as np
+from numpy.typing import NDArray
+
+numb = np.float64
+
+def f_x(x: numb, y: numb) -> numb:
+    return 2 * (x**2) + y**2 - 2
+
+def g_x(x: numb, y: numb) -> numb:
+    return (x - 1/2)**2 + (y - 1)**2 - 1/4
+
+def jacobian(x: numb, y: numb) -> NDArray[numb]:
+    return np.array([[4*x, 2*y], [2*x - 1, 2*y - 2]], dtype=numb)
+
+def newton_method(x : numb, y:numb) -> tuple[numb, numb]:
+    tolerance = 1e-6
+    max_iteration = 100
+
+    for i in range(max_iteration):
+        F = np.array([f_x(x, y) , g_x(x, y)])
+        J = jacobian(x, y)
+        d = np.linalg.solve(J, F)
+        new_x = x - d[0]
+        new_y = y - d[1]
+
+        if np.linalg.norm(new_x - x) < tolerance and np.linalg.norm(new_y - y) < tolerance:
+            print(f"Znaleziono x = {new_x} i y = {new_y}  w  iteracjach {i + 1}")
+            return new_x, new_y
+
+        x = new_x
+        y = new_y
+
+    return x, y
+
+def main():
+    guesses = np.array([[0, 0.5],[0, 1.5],[1, 0.5],[1, 1.5]])
+
+    for guess in guesses:
+        root_x, root_y = newton_method(guess[0], guess[1])
+
+if __name__ == "__main__":
+    main()
