@@ -1,0 +1,75 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from numpy.typing import NDArray
+import math
+
+vector = NDArray[np.float64]
+number = np.float64
+
+def lj_x(x: number, vector_x : vector, j: int) -> number:
+    n = len(vector_x)
+    numerator: number = np.float64(1.0)
+    denominator: number = np.float64(1.0)
+    our_range = [i for i in range(0, n) if i != j]
+
+    for i in our_range:
+        numerator *= x - vector_x[i]
+        denominator *= vector_x[j] - vector_x[i]
+
+    return numerator / denominator
+
+def find_coefficeints(x: vector, f_x: vector) -> vector:
+    n = len(x)
+    lj = np.zeros(n, dtype= number)
+    for j in range(n):
+        lj[j] = lj_x(0.0, x, j)
+
+    coeffis = np.zeros(n, dtype= number)
+    f_j = f_x.copy()
+
+    for k in range(n):
+        coeffis[k] = np.sum(lj * f_j)
+
+        for j in range(n):
+            f_j[j] = (f_j[j] - coeffis[k]) / x[j]
+
+    return coeffis
+
+
+def function_x(x: number, coeffi: vector ) -> number:
+    lenght = len(coeffi)
+    result: number = 0.0
+    for i in range(lenght):
+        result += coeffi[i] * math.pow(x, i)
+
+    return result
+
+
+def main():
+    x : vector = np.array([-1.00, -0.75, -0.50, -0.25,
+                                 0.25, 0.50, 0.75, 1.00], dtype=np.float64)
+    f_x : vector = np.array([6.00000000000000, 3.04034423828125,
+                                   1.74218750000000, 1.26361083984375,
+                                   0.75982666015625, 0.63281250000000,
+                                   0.85809326171875, 2.00000000000000], dtype=np.float64)
+
+    f_coefficeints = find_coefficeints(x, f_x)
+    print(f_coefficeints)
+    results = []
+    results_range = np.linspace(-2, 1.25, 1500)
+    for r in results_range:
+        results.append(function_x(r, f_coefficeints))
+
+    #Tworzymy wykres
+    plt.plot(results_range, results, color='blueviolet', label='Wartosci wielomianu')
+    plt.scatter(x, f_x, color = 'cyan', zorder=10, label='Punkty wykorzystane w konstrukcji')
+    plt.xlim(-2, 1.25)
+    plt.legend()
+    plt.xlabel('x')
+    plt.ylabel('f(x)')
+    plt.grid(True)
+    plt.title('Wykres wielomianu')
+    plt.show()
+
+
+main()
