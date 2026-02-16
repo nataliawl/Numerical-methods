@@ -1,0 +1,92 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from numpy.typing import NDArray
+
+vector = NDArray[np.float64]
+matrix = NDArray[np.float64]
+number = np.float64
+
+def thomas_method(sub: vector, diagonal: vector, sup: vector, b: vector) -> vector:
+    N = len(sub)
+    cp = np.zeros(N, dtype= number)
+    dp = np.zeros(N, dtype= number)
+    xi = np.zeros(N, dtype= number)
+
+    #Forward
+    cp[0] = sup[0] / diagonal[0]
+    dp[0] = b[0] / diagonal[0]
+    for i in np.arange(1, (N), 1):
+        dnum = diagonal[i] - sub[i] * cp[i - 1]
+        cp[i] = sup[i] / dnum
+        dp[i] = (b[i] - sub[i] * dp[i - 1]) / dnum
+
+    #Back
+    xi[(N - 1)] = dp[N - 1]
+
+    for i in np.arange((N - 2), -1, -1):  #
+        xi[i] = (dp[i]) - (cp[i]) * (xi[i + 1])
+
+    return xi
+
+def function_x(x:vector) -> vector:
+    f_x = np.zeros(len(x), dtype= number)
+    for i in range(len(x)):
+        f_x[i] = 1/(1 + 5*x[i]*x[i])
+
+    return f_x
+
+def spline_coefficients(x_val: number, x_j: number, h: number) -> tuple[number, number, number, number]:
+    A = (x_j + h - x_val) / h
+    B = (x_val - x_j) / h
+
+    C = (1.0 / 6.0) * (A ** 3 - A) * (h**2)
+    D = (1.0 / 6.0) * (B ** 3 - B) * (h**2)
+    print(A,B,C,D)
+
+    return A, B, C, D
+
+
+def spline_function(f_x: vector, h: number, x_val : number, x:vector, xi: vector) -> number:
+    j = np.searchsorted(x, x_val) - 1
+    if j < 0:
+        j = 0
+    if j >= len(x) - 1:
+        j = len(x) - 2
+
+    A, B, C, D = spline_coefficients(x_val, x[j], h)
+
+    P_x = A * f_x[j] + B * f_x[j + 1] + C * xi[j] + D * xi[j + 1]
+    return P_x
+
+
+def main():
+    x: vector = np.array([-7 / 8, -5 / 8, -3 / 8, -1 / 8, 1 / 8, 3 / 8, 5 / 8, 7 / 8], dtype=np.float64)
+    f_x = function_x(x)
+    diagonal: vector = np.full(len(x) - 2, 4.0)
+    subdiagonal: vector = np.full(len(x)- 3, 1.0)
+    superdiagonal: vector = np.full(len(x)- 3, 1.0)
+    h = x[1] - x[0]
+    b: vector = np.zeros(len(x) - 2, dtype=number)
+    for i in range(len(x) - 2):
+        b[i] = (6.0 / (h ** 2) * (f_x[i + 2] - 2 * f_x[i + 1] + f_x[i]))
+    vector_xi_0 = thomas_method(subdiagonal, diagonal, superdiagonal, b)
+    vector_xi: vector = np.zeros(len(x), dtype=number)
+    vector_xi[1:len(x) - 2] = vector_xi_0
+
+    # Tworzymy wykres
+    range_of_x = np.linspace(-7/8, 7/8, 1000)
+    spline = np.zeros_like(range_of_x)
+    for k, val in enumerate(range_of_x):
+        spline[k] = spline_function(f_x, h, val, x, vector_xi)
+
+    plt.plot(range_of_x, spline, label='Naturalny splajn kubiczny', color='purple')
+    plt.plot(x, f_x, 'o', label='Węzły interpolacjne', color='pink')
+    plt.title('Naturalny splajn kubiczny')
+    plt.grid(True)
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.legend()
+    plt.show()
+
+if __name__ == "__main__":
+    main()
