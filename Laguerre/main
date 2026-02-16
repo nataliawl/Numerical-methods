@@ -1,0 +1,79 @@
+import numpy as np
+from numpy.typing import NDArray
+
+vector = NDArray[np.complex128]
+numb = np.complex128
+
+def horner(coefficients : vector, z : numb) -> tuple[numb, numb, numb]:
+    P = coefficients[0]
+    P_prime = 0.0
+    P_2prime = 0.0
+
+    for i in range(1, len(coefficients)):
+        P_2prime = P_prime + z * P_2prime
+        P_prime = P + z * P_prime
+        P = coefficients[i] + z * P
+
+    return P, P_prime, 2 * P_2prime
+
+def laguerrea(coefficients : vector, z : numb) -> tuple[int, numb]:
+    epsilon = 1e-9
+    iterations = 1000
+    n = len(coefficients) - 1
+    pom_z = z
+
+    for i in range(iterations):
+        P, P_prime, P_2prime = horner(coefficients, pom_z)
+        numerator = n * P
+        root = (n - 1) * (((n - 1) * P_prime ** 2) - numerator * P_2prime)
+        denominator_minus = P_prime - np.sqrt(root)
+        denominator_plus = P_prime + np.sqrt(root)
+        if abs(denominator_plus) > denominator_minus:
+            denominator = denominator_plus
+        else:
+            denominator = denominator_minus
+
+        next_z = pom_z - numerator/denominator
+
+        if abs(pom_z - next_z) < epsilon:
+            return i + 1, next_z
+
+        pom_z = next_z
+
+    return iterations, pom_z
+
+def get_new_coeficcients(coefficients : vector, z : numb) -> vector:
+    n = len(coefficients) - 1
+    new_coeffi = np.zeros(n, dtype=numb)
+
+    new_coeffi[0] = coefficients[0]
+    for i in range(1, n):
+        new_coeffi[i] = coefficients[i] + z * new_coeffi[i - 1]
+
+    return new_coeffi
+
+def main():
+    coefficients : vector = np.array([1, 1j , -1, -1j, 1], dtype=numb)
+    roots = []
+    iterations = []
+    while len(coefficients) > 3:
+        z_0: numb = 0 + 0j
+        iteration, root = laguerrea(coefficients, z_0)
+
+        roots.append(root)
+        iterations.append(iteration)
+
+        coefficients = get_new_coeficcients(coefficients, root)
+
+
+    quad_roots = np.roots(coefficients)
+    roots.extend(quad_roots)
+
+    print("Pierwiastki wielomianu: ")
+    for root in roots:
+        print(root)
+
+    print(iterations)
+
+if __name__ == "__main__":
+    main()
