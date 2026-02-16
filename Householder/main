@@ -1,0 +1,100 @@
+import numpy as np
+from numpy.typing import NDArray
+
+vector = NDArray[np.float64]
+matrix = NDArray[np.float64]
+
+def householder_vector(column: vector) -> vector:
+    #tworzymy norme kolumny
+    norm_of_col = np.linalg.norm(column)
+    #tworzymy wektor hermitoski
+    if column[0] >= 0 : pom = 1.0
+    else : pom = -1.0
+    v = column.copy()
+    v[0] = v[0] + pom * norm_of_col
+
+    # tworzymy wektor hermitoski
+    norm_of_v = np.linalg.norm(v)
+    return v / norm_of_v
+
+def triagonal(A: matrix) -> matrix:
+    A = A.astype(np.float64)
+    n = A.shape[0]
+
+    for i in range(n - 2):
+        x = A[i + 1:, i]
+
+        u = householder_vector(x)
+
+        A[i + 1:, i:] -= 2 * np.outer(u, u @ A[i + 1:, i:])
+        A[:, i + 1:] -= 2 * np.outer(A[:, i + 1:] @ u, u)
+
+    return A
+def qr(T: matrix) -> matrix:
+    #T = T.copy()
+    n = T.shape[0]
+    for i in range(n - 1):
+        a = T[i, i]
+        b = T[i + 1, i]
+
+        r = np.hypot(a, b)
+        c = a / r
+        s = b / r
+
+        apply_rows(T, i, i + 1, c, s)
+        apply_cols(T, i, i + 1, c, s)
+
+    return T
+
+def apply_cols(T, i, j, c, s):
+    n = T.shape[0]
+
+    top = max(0, i - 1)
+    bottom = min(n - 1, i + 2)
+
+    for row in range(top, bottom + 1):
+        Ti = T[row, i]
+        Tj = T[row, j]
+
+        T[row, i] = c * Ti + s * Tj
+        T[row, j] = -s * Ti + c * Tj
+def apply_rows(T, i, j, c, s):
+    n = T.shape[0]
+
+    left = max(0, i - 1)
+    right = min(n - 1, i + 2)
+
+    for col in range(left, right + 1):
+        Ti = T[i, col]
+        Tj = T[j, col]
+
+        T[i, col] = c * Ti + s * Tj
+        T[j, col] = -s * Ti + c * Tj
+
+def main():
+    A: matrix = np.array([[19 / 12, 13 / 12, 5 / 6, 5 / 6, 13 / 12, -17 / 12],
+                          [13 / 12, 13 / 12, 5 / 6, 5 / 6, -11 / 12, 13 / 12],
+                          [5 / 6, 5 / 6, 5 / 6, -1 / 6, 5 / 6, 5 / 6],
+                          [5 / 6, 5 / 6, -1 / 6, 5 / 6, 5 / 6, 5 / 6],
+                          [13 / 12, -11 / 12, 5 / 6, 5 / 6, 13 / 12, 13 / 12],
+                          [-17 / 12, 13 / 12, 5 / 6, 5 / 6, 13 / 12, 19 / 12]], dtype=np.float64)
+    T = triagonal(A)
+    np.set_printoptions(linewidth=np.inf)
+    print("Macierz trojdiagonalna T:")
+    print(T)
+
+    eps = 1e-12
+    max_iter = 1000
+
+    for it in range(max_iter):
+        diag_old = np.diag(T).copy()
+        T = qr(T)
+        diag_new = np.diag(T)
+
+        # sprawdzamy maksymalną zmianę przekątnej
+        diff = np.linalg.norm(diag_new - diag_old)
+        if diff < eps:
+            print(f"Diagonal converged after {it} iterations, diff = {diff:.2e}")
+            break
+    print(T)
+main()
