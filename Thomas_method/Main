@@ -1,0 +1,43 @@
+#include <iostream>
+void thomas_algorythm(const int size, double x[], const double a[], const double b[], const double c[]) {
+    double pom[size];
+	double v[size];
+	pom[1] = c[1] / b[1];
+    v[1] = -a[1] / b[1];
+    x[1] = x[1] / b[1];
+
+    for (int i = 2; i < size - 1; i++) {
+        const double m = 1.0 / (b[i] - a[i] * pom[i - 1]);
+        pom[i] = c[i] * m;
+        v[i] = (0.0f  - a[i] * v[i - 1]) * m;
+        x[i] = (x[i] - a[i] * x[i - 1]) * m;
+    }
+
+    const double m = 1.0 / (b[size - 1] - a[size - 1] * pom[size - 2]);
+    pom[size - 1] = c[size - 1] * m;
+    v[size - 1] = (-c[0]    - a[size - 1] * v[size - 2]) * m;
+    x[size- 1] = (x[size - 1] - a[size - 1] * x[size- 2]) * m;
+
+    for (int i = size - 2; i >= 1; i--) {
+        v[i] -= pom[i] * v[i + 1];
+        x[i] -= pom[i] * x[i + 1];
+    }
+
+    x[0] = (x[0] - a[0] * x[size - 1] - c[0] * x[1]) / (b[0] + a[0] * v[size - 1] + c[0] * v[1]);
+
+    for (int i = 1; i < size; i++){
+    	x[i] += x[0] * v[i];
+	}
+	
+	 for (int i = 0; i < size; i++){
+    	std :: cout << x[i] << std:: endl;
+	}
+     
+}
+int main(){
+	const double a[7] = {1,1,1,1,1,1,1};
+	const double b[7] = {4,4,4,4,4,4,4};
+	const double c[7] = {1,1,1,1,1,1,1};
+	double x[7] = {1,2,3,4,5,6,7};
+	thomas_algorythm(7,x,a,b,c);
+}
