@@ -1,0 +1,43 @@
+from typing import Any
+import numpy as np
+from numpy.typing import NDArray
+
+vector = NDArray[np.float64]
+matrix = NDArray[np.float64]
+
+def wanted_vector(A: matrix, iterations:int, value: np.float64)->vector:
+    #Wyliczamy rezolwente
+    new_matrix = np.array([[value, 0, 0,0, 0],
+                                [0, value, 0, 0, 0],
+                                [0,0,value,0,0],
+                                [0,0,0,value,0],
+                                [0,0,0,0,value]], dtype=np.float64)
+    resolvent = np.linalg.inv(A - new_matrix)
+    y = np.random.rand(A.shape[0])  # Tworzymy randomowy wektor
+    y = y / np.linalg.norm(y)  # Normalizujemy go
+
+    for _ in range(iterations):
+        #Obliczamy wektor z
+        z = resolvent @ y
+
+        #Liczmy jego norme
+        norm_of_z = np.linalg.norm(z)
+
+        #Normalizujey go
+        y = z / norm_of_z
+
+    return y
+
+def main():
+
+    our_value = np.float64(0.38197)
+    A: vector = np.array([[2, -1, 0,0, 1],
+                                [-1, 2, 1, 0, 0],
+                                [0,1,1,1,0],
+                                [0,0,1,2,-1],
+                                [1,0,0,-1,2]], dtype=np.float64)
+    our_vector = wanted_vector(A, 100000, our_value)
+    print("Wyswietlamy wyniki")
+    print(f"Pierwszy wektor: {our_vector}")
+
+main()
