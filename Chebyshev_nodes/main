@@ -1,0 +1,96 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from numpy.typing import NDArray
+import math
+
+vector = NDArray[np.float64]
+number = np.float64
+
+def lj_x(x: number, vector_x : vector, j: int) -> number:
+    n = len(vector_x)
+    numerator: number = np.float64(1.0)
+    denominator: number = np.float64(1.0)
+    our_range = [i for i in range(0, n) if i != j]
+
+    for i in our_range:
+        numerator *= x - vector_x[i]
+        denominator *= vector_x[j] - vector_x[i]
+
+    return numerator / denominator
+
+def find_coefficeints(x: vector, f_x: vector) -> vector:
+    n = len(x)
+    lj = np.zeros(n, dtype= number)
+    for j in range(n):
+        lj[j] = lj_x(0.0, x, j)
+
+    coeffis = np.zeros(n, dtype= number)
+    f_j = f_x.copy()
+
+    for k in range(n):
+        coeffis[k] = np.sum(lj * f_j)
+
+        for j in range(n):
+            f_j[j] = (f_j[j] - coeffis[k]) / x[j]
+
+    return coeffis
+
+
+def polynomial(x: number, coeffi: vector ) -> number:
+    lenght = len(coeffi)
+    result: number = 0.0
+    for i in range(lenght):
+        result += coeffi[i] * math.pow(x, i)
+
+    return result
+
+def function_x(x:vector) -> vector:
+    f_x = np.zeros(len(x), dtype= number)
+    for i in range(len(x)):
+        f_x[i] = 1/(1 + 5*x[i]*x[i])
+
+    return f_x
+def x_j(n: int)->vector:
+    vector_x = np.zeros(n, dtype= number)
+    for j in range(0, n):
+        vector_x[j] = np.cos(((2*(j+1) - 1)/16)* np.pi)
+
+    return vector_x
+
+def main():
+    previous_x: vector = np.array([-7 / 8, -5 / 8, -3 / 8, -1 / 8, 1 / 8, 3 / 8, 5 / 8, 7 / 8], dtype=np.float64)
+    previous_f_x = function_x(previous_x)
+    x = x_j(8)
+    f_x = function_x(x)
+
+    coefficeints = find_coefficeints(x, f_x)
+    previous_coefficeints = find_coefficeints(previous_x, previous_f_x)
+    print(coefficeints)
+    x_results = []
+    previous_x_results = []
+    for i in range(len(x)):
+        x_results.append(polynomial(x[i], coefficeints))
+        previous_x_results.append(polynomial(previous_x[i], previous_coefficeints))
+
+    results_range = np.linspace(-1.25, 1.25, 1500)
+    results = []
+    previous_results = []
+    for r in results_range:
+        results.append(polynomial(r, coefficeints))
+        previous_results.append(polynomial(r,previous_coefficeints))
+
+    #Tworzymy wykres
+    plt.plot(results_range, results, color='blueviolet', label='Wartosci wielomianu')
+    plt.scatter(x, f_x, color = 'cyan', zorder=10, label='Punkty wykorzystane w konstrukcji')
+    plt.plot(results_range, previous_results, color='limegreen', label='Wartosci wielomianu z zadania 08')
+    plt.scatter(x, previous_f_x, color='deeppink', zorder=10, label='Punkty wykorzystane w konstrukcji z zadania 08')
+    plt.xlim(-1.25, 1.25)
+    plt.legend()
+    plt.xlabel('x')
+    plt.ylabel('l(x)')
+    plt.grid(True)
+    plt.title('Wykres wielomianu')
+    plt.show()
+
+
+main()
